@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { BrainCircuit, MessageSquare, AlertTriangle, ShieldCheck, HelpCircle } from 'lucide-react';
+import { BrainCircuit, MessageSquare, AlertTriangle, ShieldCheck, HelpCircle, ArrowRight, CheckCircle2 } from 'lucide-react';
 import { api } from '../api';
 import { ReasoningResponse } from '../types';
 
@@ -43,23 +43,14 @@ export const ReasoningConsole: React.FC<Props> = ({ imageFile }) => {
   };
 
   return (
-    <div className="glass-panel p-6 flex flex-col gap-6">
-      <div className="flex items-center gap-3 border-b border-slate-700/50 pb-4">
-        <div className="p-2 bg-purple-500/20 rounded-lg border border-purple-500/30">
-          <BrainCircuit className="w-6 h-6 text-purple-400" />
-        </div>
-        <div>
-          <h2 className="text-xl font-bold text-white">Ask SolarSight</h2>
-          <p className="text-sm text-slate-400">Ask constrained questions about the visual evidence.</p>
-        </div>
-      </div>
-
-      <div className="flex flex-wrap gap-2">
+    <div className="flex flex-col gap-6">
+      
+      <div className="flex flex-wrap gap-2 mb-2">
         {PRESET_QUESTIONS.map((pq, idx) => (
           <button 
             key={idx}
             onClick={() => { setQuestion(pq); handleSubmit(pq); }}
-            className="text-xs bg-slate-800 hover:bg-slate-700 text-slate-300 px-3 py-1.5 rounded-full border border-slate-700 transition-colors"
+            className="text-xs bg-slate-900 hover:bg-slate-800 text-ai-400/80 hover:text-ai-400 px-4 py-2 rounded-full border border-ai-500/20 hover:border-ai-500/50 transition-all duration-300"
           >
             {pq}
           </button>
@@ -67,73 +58,128 @@ export const ReasoningConsole: React.FC<Props> = ({ imageFile }) => {
       </div>
 
       <div className="flex gap-3">
-        <div className="relative flex-1">
-          <MessageSquare className="absolute left-3 top-3 w-5 h-5 text-slate-500" />
+        <div className="relative flex-1 group">
+          <MessageSquare className="absolute left-4 top-3.5 w-5 h-5 text-slate-500 group-focus-within:text-ai-400 transition-colors" />
           <input 
             type="text" 
             value={question}
             onChange={(e) => setQuestion(e.target.value)}
             onKeyDown={(e) => e.key === 'Enter' && handleSubmit(question)}
-            placeholder="What do you want to know?"
-            className="w-full bg-slate-900 border border-slate-700 rounded-lg py-3 pl-10 pr-4 text-white focus:outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500"
+            placeholder="What do you want to know about this panel?"
+            className="w-full bg-slate-900/80 border border-slate-700/50 rounded-xl py-3.5 pl-12 pr-4 text-white focus:outline-none focus:border-ai-500 focus:ring-1 focus:ring-ai-500 transition-all shadow-inner"
           />
         </div>
         <button 
           onClick={() => handleSubmit(question)}
           disabled={isThinking || !question.trim()}
-          className="bg-purple-600 hover:bg-purple-500 disabled:opacity-50 text-white px-6 py-3 rounded-lg font-medium transition-colors"
+          className="bg-ai-600 hover:bg-ai-500 disabled:opacity-50 disabled:hover:bg-ai-600 text-white px-8 py-3.5 rounded-xl font-bold tracking-wide transition-all duration-300 flex items-center gap-2 shadow-[0_0_15px_rgba(14,165,233,0.2)] hover:shadow-[0_0_25px_rgba(14,165,233,0.4)]"
         >
-          {isThinking ? 'Analyzing...' : 'Ask'}
+          {isThinking ? (
+            <><BrainCircuit className="w-5 h-5 animate-pulse" /> Thinking...</>
+          ) : (
+            'Ask AI'
+          )}
         </button>
       </div>
 
       {error && (
-        <div className="bg-rose-500/10 border border-rose-500/30 p-4 rounded-lg flex gap-3 text-rose-400">
-          <AlertTriangle className="w-5 h-5 flex-shrink-0" />
+        <div className="bg-rose-500/10 border border-rose-500/30 p-4 rounded-lg flex items-start gap-3 text-rose-400 animate-fade-in-up">
+          <AlertTriangle className="w-5 h-5 flex-shrink-0 mt-0.5" />
           <p className="text-sm">{error}</p>
         </div>
       )}
 
       {result && (
-        <div className="bg-slate-900/50 border border-slate-700 rounded-xl overflow-hidden">
-          <div className="bg-slate-800/50 px-4 py-3 border-b border-slate-700 flex justify-between items-center">
-            <h3 className="text-sm font-semibold text-slate-300">Reasoning Result</h3>
-            <span className="text-xs font-mono bg-slate-900 px-2 py-1 rounded text-slate-400">POST /reason</span>
+        <div className="bg-slate-900/60 border border-slate-700/50 rounded-xl overflow-hidden animate-fade-in-up shadow-2xl">
+          <div className="bg-slate-800/80 px-5 py-3 border-b border-slate-700/50 flex justify-between items-center">
+            <h3 className="text-sm font-semibold text-slate-300 flex items-center gap-2">
+              <BrainCircuit className="w-4 h-4 text-ai-400" />
+              Reasoning Pipeline Execution
+            </h3>
+            <span className="text-xs font-mono bg-slate-950 px-2.5 py-1 rounded-md text-ai-400 border border-ai-500/20">POST /reason</span>
           </div>
           
-          <div className="p-5 space-y-4">
-            <div className="grid grid-cols-3 gap-4">
-              <div className="bg-slate-950 p-3 rounded-lg border border-slate-800">
-                <div className="text-xs text-slate-500 mb-1">Intent</div>
-                <div className="text-sm font-medium text-white">{result.intent}</div>
+          <div className="p-6 space-y-6">
+            
+            {/* Visual Pipeline */}
+            <div className="flex items-center justify-between gap-2 overflow-x-auto pb-2">
+              <div className="flex flex-col items-center gap-2 min-w-[80px]">
+                <div className="w-8 h-8 rounded-full bg-ai-500/20 border border-ai-500/50 flex items-center justify-center text-ai-400">
+                  <MessageSquare className="w-4 h-4" />
+                </div>
+                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest text-center">Query</span>
               </div>
-              <div className="bg-slate-950 p-3 rounded-lg border border-slate-800">
-                <div className="text-xs text-slate-500 mb-1">Detector Used</div>
-                <div className="text-sm font-medium text-white">{result.detector_invoked ? 'Yes' : 'Bypassed'}</div>
+              
+              <div className="h-[2px] flex-1 bg-slate-700 relative"><div className="absolute inset-0 bg-ai-500/50 w-full animate-pulse"></div></div>
+              
+              <div className="flex flex-col items-center gap-2 min-w-[80px]">
+                <div className="w-8 h-8 rounded-full bg-ai-500/20 border border-ai-500/50 flex items-center justify-center text-ai-400">
+                  <BrainCircuit className="w-4 h-4" />
+                </div>
+                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest text-center">Intent</span>
               </div>
-              <div className="bg-slate-950 p-3 rounded-lg border border-slate-800">
-                <div className="text-xs text-slate-500 mb-1">Guardrail Status</div>
-                <div className="text-sm font-medium flex items-center gap-1">
-                  {result.guardrail_triggered ? (
-                    <span className="text-yellow-500"><AlertTriangle className="w-4 h-4 inline" /> Triggered</span>
+
+              <div className="h-[2px] flex-1 bg-slate-700 relative"><div className="absolute inset-0 bg-ai-500/50 w-full animate-pulse" style={{ animationDelay: '200ms' }}></div></div>
+              
+              <div className="flex flex-col items-center gap-2 min-w-[80px]">
+                <div className={`w-8 h-8 rounded-full flex items-center justify-center ${result.detector_invoked ? 'bg-solar-500/20 border border-solar-500/50 text-solar-400' : 'bg-slate-800 border border-slate-700 text-slate-500'}`}>
+                  <HelpCircle className="w-4 h-4" />
+                </div>
+                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest text-center">Vision</span>
+              </div>
+
+              <div className="h-[2px] flex-1 bg-slate-700 relative"><div className="absolute inset-0 bg-ai-500/50 w-full animate-pulse" style={{ animationDelay: '400ms' }}></div></div>
+              
+              <div className="flex flex-col items-center gap-2 min-w-[80px]">
+                <div className={`w-8 h-8 rounded-full flex items-center justify-center ${result.guardrail_triggered ? 'bg-rose-500/20 border border-rose-500/50 text-rose-400' : 'bg-emerald-500/20 border border-emerald-500/50 text-emerald-400'}`}>
+                  {result.guardrail_triggered ? <AlertTriangle className="w-4 h-4" /> : <ShieldCheck className="w-4 h-4" />}
+                </div>
+                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest text-center">Guardrail</span>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="glass-card p-4 bg-slate-950/50">
+                <div className="text-[11px] font-semibold text-slate-500 mb-1.5 uppercase tracking-wider">Detected Intent</div>
+                <div className="text-sm font-medium text-white break-words">{result.intent}</div>
+              </div>
+              <div className="glass-card p-4 bg-slate-950/50">
+                <div className="text-[11px] font-semibold text-slate-500 mb-1.5 uppercase tracking-wider">Vision Detection</div>
+                <div className="text-sm font-medium text-white flex items-center gap-2">
+                  {result.detector_invoked ? (
+                    <><span className="w-2 h-2 rounded-full bg-solar-400"></span> Invoked (Found {result.detections_used})</>
                   ) : (
-                    <span className="text-emerald-400"><ShieldCheck className="w-4 h-4 inline" /> Passed</span>
+                    <><span className="w-2 h-2 rounded-full bg-slate-600"></span> Bypassed</>
+                  )}
+                </div>
+              </div>
+              <div className="glass-card p-4 bg-slate-950/50">
+                <div className="text-[11px] font-semibold text-slate-500 mb-1.5 uppercase tracking-wider">Safety Guardrail</div>
+                <div className="text-sm font-medium flex items-center gap-1.5">
+                  {result.guardrail_triggered ? (
+                    <span className="text-rose-400 flex items-center gap-1.5"><AlertTriangle className="w-4 h-4" /> Triggered</span>
+                  ) : (
+                    <span className="text-emerald-400 flex items-center gap-1.5"><ShieldCheck className="w-4 h-4" /> Passed</span>
                   )}
                 </div>
               </div>
             </div>
 
             {result.guardrail_triggered ? (
-              <div className="mt-4 p-4 bg-yellow-500/10 border border-yellow-500/30 rounded-lg">
-                <div className="text-yellow-500 font-bold mb-1 flex items-center gap-2">
-                  <AlertTriangle className="w-5 h-5" /> INSUFFICIENT EVIDENCE
+              <div className="p-5 bg-rose-500/10 border border-rose-500/30 rounded-xl relative overflow-hidden">
+                <div className="absolute top-0 right-0 w-32 h-32 bg-rose-500/10 rounded-full blur-2xl -mr-16 -mt-16 pointer-events-none"></div>
+                <div className="text-rose-500 font-bold mb-2 flex items-center gap-2 text-sm uppercase tracking-wider relative z-10">
+                  <AlertTriangle className="w-5 h-5" /> Insufficient Visual Evidence
                 </div>
-                <p className="text-yellow-400/90">{result.answer}</p>
+                <p className="text-rose-200/90 leading-relaxed relative z-10">{result.answer}</p>
               </div>
             ) : (
-              <div className="mt-4 p-4 bg-slate-800/30 border border-slate-700/50 rounded-lg">
-                <div className="text-slate-400 font-medium mb-2 text-xs uppercase tracking-wider">Generated Answer</div>
-                <p className="text-white text-lg">{result.answer}</p>
+              <div className="p-6 bg-slate-800/40 border border-ai-500/20 rounded-xl relative overflow-hidden shadow-[inset_0_0_20px_rgba(14,165,233,0.05)]">
+                <div className="absolute top-0 right-0 w-32 h-32 bg-ai-500/10 rounded-full blur-2xl -mr-16 -mt-16 pointer-events-none"></div>
+                <div className="text-ai-400 font-bold mb-3 text-xs uppercase tracking-widest flex items-center gap-2 relative z-10">
+                  <CheckCircle2 className="w-4 h-4" /> Generated Answer
+                </div>
+                <p className="text-white text-lg leading-relaxed relative z-10">{result.answer}</p>
               </div>
             )}
           </div>

@@ -10,6 +10,25 @@
 
 @layer utilities {
   .glass-panel {
-    @apply bg-slate-900/60 backdrop-blur-md border border-slate-700/50 rounded-xl shadow-xl shadow-black/20;
+    @apply bg-slate-900/40 backdrop-blur-xl border border-slate-700/50 rounded-xl shadow-2xl shadow-black/50;
+  }
+  .glass-panel-hover {
+    @apply hover:bg-slate-800/60 hover:border-solar-500/30 transition-all duration-300;
+  }
+  .glass-card {
+    @apply bg-slate-800/30 backdrop-blur-md border border-slate-700/40 rounded-lg;
+  }
+  
+  /* Stagger delays for children */
+  .stagger-1 { animation-delay: 100ms; }
+  .stagger-2 { animation-delay: 200ms; }
+  .stagger-3 { animation-delay: 300ms; }
+  .stagger-4 { animation-delay: 400ms; }
+  .stagger-5 { animation-delay: 500ms; }
+
+  /* Background overlay gradient */
+  .bg-hero-overlay {
+    background: radial-gradient(circle at center, transparent 0%, rgba(11, 15, 25, 0.8) 50%, rgba(11, 15, 25, 1) 100%), linear-gradient(to bottom, rgba(11, 15, 25, 0.4), rgba(11, 15, 25, 1));
   }
 }
+
