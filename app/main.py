@@ -29,7 +29,7 @@ app.add_middleware(
         frontend_origin, 
         "http://localhost:3000",
         "http://localhost:5173",
-        "https://solar-sight-muv.vercel.app"
+        "https://solar-sight-mu.vercel.app"
     ],
     allow_credentials=True,
     allow_methods=["*"],

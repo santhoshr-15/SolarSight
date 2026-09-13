@@ -88,9 +88,9 @@ def test_cors():
     response = client.options(
         "/health",
         headers={
-            "Origin": "https://solar-sight-muv.vercel.app",
+            "Origin": "https://solar-sight-mu.vercel.app",
             "Access-Control-Request-Method": "GET"
         }
     )
     assert response.status_code == 200
-    assert response.headers.get("access-control-allow-origin") == "https://solar-sight-muv.vercel.app"
+    assert response.headers.get("access-control-allow-origin") == "https://solar-sight-mu.vercel.app"
