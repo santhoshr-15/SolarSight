@@ -25,7 +25,12 @@ frontend_origin = os.environ.get("FRONTEND_ORIGIN", "http://localhost:5173")
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[frontend_origin, "http://localhost:3000"],
+    allow_origins=[
+        frontend_origin, 
+        "http://localhost:3000",
+        "http://localhost:5173",
+        "https://solar-sight-muv.vercel.app"
+    ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

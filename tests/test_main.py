@@ -83,3 +83,14 @@ def test_reason_visual_with_image():
     assert res["intent"] == "visual_detection_required"
     assert res["guardrail_triggered"] is False
     assert "Physical Damage" in res["answer"]
+
+def test_cors():
+    response = client.options(
+        "/health",
+        headers={
+            "Origin": "https://solar-sight-muv.vercel.app",
+            "Access-Control-Request-Method": "GET"
+        }
+    )
+    assert response.status_code == 200
+    assert response.headers.get("access-control-allow-origin") == "https://solar-sight-muv.vercel.app"
