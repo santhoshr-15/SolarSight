@@ -20,7 +20,19 @@ class SolarDetector:
     def load_model(self):
         if self.model is None:
             logger.info(f"Loading RT-DETR-L model from {MODEL_PATH}")
-            self.model = RTDETR(MODEL_PATH)
+            # Explicitly handle PyTorch 2.6+ default weights_only=True behavior.
+            # We bypass it securely and ONLY for our trusted local checkpoint.
+            import torch
+            from unittest.mock import patch
+            
+            original_load = torch.load
+            def trusted_load(*args, **kwargs):
+                kwargs["weights_only"] = False
+                return original_load(*args, **kwargs)
+                
+            with patch("torch.load", trusted_load):
+                self.model = RTDETR(MODEL_PATH)
+                
             logger.info("Model loaded successfully.")
         
     def detect(self, image_bytes: bytes, conf: float = 0.50):
