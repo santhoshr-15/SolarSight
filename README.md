@@ -59,11 +59,29 @@ SolarSight uses a fine-tuned **RT-DETR-L** object detector to identify solar-pan
 
 ## 🖥️ Product Preview
 
-<div align="center">
-  <img src="docs/assets/solarsight_preview.png" alt="SolarSight Interface" width="800" />
-  <br/>
-  <em>SolarSight web interface — real-time visual inspection with detection overlay and constrained reasoning console.</em>
-</div>
+🚀 **Live Production:** [https://solar-sight-mu.vercel.app](https://solar-sight-mu.vercel.app)
+
+Explore the deployed SolarSight application and interact with the live RT-DETR-L inspection and constrained reasoning workflow.
+
+### Visual Inspection & Detection Dashboard
+
+<p align="center">
+  <img src="docs/assets/solarsight-visual-inspection.png" alt="SolarSight Visual Inspection — RT-DETR-L detection with bounding boxes, detection summary, and confidence profile" width="900">
+</p>
+
+<p align="center">
+  <em>Live Visual Inspection — RT-DETR-L detection output with bounding boxes overlaid on a real solar panel image. The sidebar displays the detection summary (6 detections across Physical Damage, Defective, and Non Defective classes), per-detection confidence profile, and trace metrics including model architecture and input resolution.</em>
+</p>
+
+### Constrained Reasoning & Confidence Guardrail
+
+<p align="center">
+  <img src="docs/assets/solarsight-constrained-reasoning.png" alt="SolarSight Ask AI — constrained reasoning pipeline with intent routing and confidence guardrail" width="900">
+</p>
+
+<p align="center">
+  <em>Ask SolarSight — the constrained reasoning console processes the natural-language question "How many Physical Damage detections are present?" through the full pipeline (Query → Intent → Vision → Guardrail). The system routes intent as visual_detection_required, bypasses redundant detection when results are cached, validates via the safety guardrail, and generates the evidence-based answer: "I found 2 Physical Damage in the image."</em>
+</p>
 
 ---
 
