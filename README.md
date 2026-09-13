@@ -1,11 +1,107 @@
 # SolarSight
-Solar panel fault detection and constrained visual reasoning API using RT-DETR-L.
 
-## 1. Project Overview
-SolarSight is an intelligent inspection API designed to detect faults in solar panels and answer natural-language questions about them. The system uses a fine-tuned RT-DETR-L object detection model to identify various panel conditions and faults. Instead of using an unconstrained LLM that might hallucinate or directly guess from an image, SolarSight features a strict, constrained reasoning endpoint. It processes questions, routes them by intent, runs the detector only when visual information is required, and reasons exclusively over the structured detector output. It features a strict confidence and insufficient-information guardrail to prevent hallucination.
+### Constrained Solar Panel Fault Detection & Reasoning API
 
-## 2. Detected Classes
-The model was trained on a domain-specific dataset (non-COCO) to detect six distinct classes:
+SolarSight is an RT-DETR-L based computer-vision system for detecting solar-panel faults and answering constrained natural-language questions over detector output through a deterministic reasoning layer.
+
+![Python](https://img.shields.io/badge/Python-3.12-blue)
+![PyTorch](https://img.shields.io/badge/PyTorch-orange)
+![Ultralytics](https://img.shields.io/badge/Ultralytics-yellow)
+![FastAPI](https://img.shields.io/badge/FastAPI-green)
+![pytest](https://img.shields.io/badge/pytest-blue)
+![Docker](https://img.shields.io/badge/Docker-blue)
+
+| Area | Status |
+|---|---|
+| Object Detection | Verified |
+| RT-DETR-L Weights | Included |
+| FastAPI | Verified |
+| Reasoning Layer | Verified |
+| Guardrail | Verified |
+| Unit Tests | 14 passed, 1 skipped |
+| Integration Test | 1 passed |
+| Dockerfile | Reviewed; runtime not locally executed |
+| Public Deployment | Not yet deployed |
+
+## Key Results
+
+**Validation:**
+- Precision: 0.529
+- Recall: 0.560
+- mAP50: 0.511
+- mAP50-95: 0.348
+
+**Held-out Test:**
+- Precision: 0.442
+- Recall: 0.514
+- mAP50: 0.424
+- mAP50-95: 0.271
+
+**Training:**
+- RT-DETR-L
+- 20 epochs
+- 640 image size
+- batch 8
+- Tesla T4
+- ~3.066 hours
+
+**Testing:**
+- 14 passed
+- 1 skipped
+- 1 real-model integration test passed
+- Latest integration runtime: 4.92 seconds CPU fallback
+
+## System Architecture
+
+```mermaid
+graph TD
+    A[User] --> B[FastAPI]
+    B --> C[Question / Image Validation]
+    C --> D{Intent Router}
+    D -->|General Question| E[General Response]
+    D -->|Visual Question| F[RT-DETR-L]
+    F --> G[Structured Detections]
+    G --> H[Constrained Reasoning]
+    H --> I[Confidence Guardrail]
+    I --> J[Natural-Language Response]
+```
+
+**Direct Detection Route:**
+
+```mermaid
+graph TD
+    A[Image] --> B[FastAPI /detect]
+    B --> C[RT-DETR-L]
+    C --> D[Structured JSON detections]
+```
+
+## Data Pipeline
+
+```mermaid
+graph TD
+    A[Public Dataset] --> B[Dataset Inspection]
+    B --> C[Mixed Detection / Polygon Annotations]
+    C --> D[Polygon → Axis-Aligned Bounding Box Conversion]
+    D --> E[Detection Dataset Validation]
+    E --> F[Train / Validation / Test]
+    F --> G[RT-DETR Training]
+    G --> H[Held-Out Evaluation]
+```
+
+**Dataset Source:** [Solar Panel Fault Dataset New (v2)](https://universe.roboflow.com/6rianstorm/solar-panel-fault-dataset-new)
+
+**Dataset:**
+- 8,730 images
+- v2
+- 640×640
+- six classes
+
+**Final Split:**
+- Train: 7,669 images
+- Validation: 611 images
+- Test: 450 images
+
+**Classes:**
 1. Bird Drop
 2. Defective
 3. Dusty
@@ -13,267 +109,156 @@ The model was trained on a domain-specific dataset (non-COCO) to detect six dist
 5. Physical Damage
 6. Snow
 
-## 3. System Architecture
-SolarSight's reasoning capabilities operate through a strict, deterministic pipeline:
+*Note: Polygon annotations were converted to axis-aligned bounding boxes for the detection pipeline. We did not originally create or label this dataset. It is not stored in this repository.*
 
-`Image` &rarr; `RT-DETR-L Detector` &rarr; `Structured Detections (class, confidence, bounding box, counts)` &rarr; `Reasoning / Intent Router` &rarr; `Natural-Language Answer`
+## Why Solar Panel Fault Detection?
 
-When a user submits a question via the `/reason` endpoint, the system uses an intent router to determine whether visual detection is required. If detection is required, it invokes the detector and reasons *only* over the structured result. 
+Solar panel fault detection is a real-world visual inspection problem characterized by multiple visually similar fault categories. Object detection provides both localization and classification, allowing for precise defect isolation. The reasoning layer demonstrates constrained visual question answering directly over these localized faults. This domain features non-COCO-style categories, making it a robust testbed for domain-specific fine-tuning.
 
-*(Note: This is a plain Python deterministic implementation. This is **not** an autonomous LLM agent.)*
+## Model
 
-## 4. Dataset
-**Dataset Source:** [Solar Panel Fault Dataset New](https://universe.roboflow.com/6rianstorm/solar-panel-fault-dataset-new) by 6rianstorm (Roboflow Universe).
+| Property | Value |
+|---|---|
+| Architecture | RT-DETR-L |
+| Initialization | Pretrained rtdetr-l.pt |
+| Framework | Ultralytics |
+| Classes | 6 |
+| Image Size | 640 |
+| Epochs | 20 |
+| Batch Size | 8 |
+| Seed | 42 |
+| Optimizer | AdamW |
+| GPU | Tesla T4 |
+| Training Time | ~3.066 hours |
+| Checkpoint | model/best.pt |
 
-The original public v2 dataset contains 8,730 images at 640x640 resolution, featuring both YOLO detection bounding boxes and polygon segmentation annotations. To standardize our local pipeline, segmentation polygons were successfully converted into axis-aligned YOLO bounding boxes. We did not create the original annotations.
+*Note: The original training run used `optimizer=auto`, which resolved to AdamW.*
 
-**Corrected Dataset Statistics (8,730 total):**
-- **Train:** 7,669 images (41,014 objects)
-- **Validation:** 611 images (3,453 objects)
-- **Test:** 450 images (2,796 objects)
+## Evaluation Results
 
-**Split Strategy Justification:** The large training partition preserves maximum examples for fine-tuning—critical for capturing the visual variance of amorphous classes like Snow and Dusty—while still maintaining independent validation and held-out test partitions.
+| Metric | Validation | Held-out Test |
+|---|---:|---:|
+| Precision | 0.529 | 0.442 |
+| Recall | 0.560 | 0.514 |
+| mAP50 | 0.511 | 0.424 |
+| mAP50-95 | 0.348 | 0.271 |
 
-The dataset contains exactly 6 classes with no missing images/labels and no invalid objects after conversion. 
-*Note: Due to file size and licensing constraints, the dataset itself is excluded from this GitHub repository. The `.gitignore` prevents it from being committed.*
+The held-out test performance is lower than validation performance, indicating a measurable generalization gap.
 
-## 5. Training
-The model was fine-tuned on the dataset using the following configuration:
-- **Model:** RT-DETR-L (Starting checkpoint: `rtdetr-l.pt`)
-- **Epochs:** 20
-- **Image size:** 640
-- **Batch size:** 8
-- **Optimizer:** AdamW
-- **Seed:** 42
-- **AMP:** Enabled
-- **Hardware:** NVIDIA Tesla T4
-- **Environment:** Ultralytics v8.4.150, PyTorch 2.11.0+cu128, Python 3.13.15
-- **Training time:** ~3.066 hours
-
-The best checkpoint was selected based on validation performance and is stored at `model/best.pt`.
-
-## 6. Evaluation Results
-
-The model's performance on the held-out sets:
-
-**Validation:**
-- Precision: 52.9%
-- Recall: 56.0%
-- mAP50: 51.1%
-- mAP50-95: 34.8%
-
-**Test (Held-out):**
-- Precision: 44.23%
-- Recall: 51.44%
-- mAP50: 42.37%
-- mAP50-95: 27.07%
-
-**Per-Class Test Metrics:**
+## Per-Class Performance
 
 | Class | Precision | Recall | mAP50 | mAP50-95 |
 |---|---:|---:|---:|---:|
-| Bird Drop | 50.2% | 24.7% | 28.2% | 9.3% |
-| Defective | 43.2% | 69.7% | 55.9% | 48.5% |
-| Dusty | 34.2% | 58.7% | 47.8% | 34.1% |
-| Non Defective | 37.4% | 59.2% | 42.3% | 30.2% |
-| Physical Damage | 62.3% | 47.2% | 45.8% | 20.7% |
-| Snow | 38.1% | 49.1% | 34.2% | 19.7% |
+| Bird Drop | 0.502 | 0.247 | 0.282 | 0.093 |
+| Defective | 0.432 | 0.697 | 0.559 | 0.485 |
+| Dusty | 0.342 | 0.587 | 0.478 | 0.341 |
+| Non Defective | 0.374 | 0.592 | 0.423 | 0.302 |
+| Physical Damage | 0.623 | 0.472 | 0.458 | 0.207 |
+| Snow | 0.381 | 0.491 | 0.342 | 0.197 |
 
-## 7. Failure Cases and Limitations
-While the model successfully identifies various conditions, it is not a perfect inspection system and has known limitations:
-- **Recall Issues:** Certain classes, such as *Bird Drop*, exhibit relatively low recall.
-- **Ambiguity:** Visually similar or compounding categories can produce overlapping detections. For example, real-world qualitative testing showed a strong *Physical Damage* detection alongside multiple *Defective* detections on the same area, demonstrating semantic ambiguity.
-- **Qualitative vs Quantitative:** The provided real-world sample (`test/sample_images/real_world_solar_test.png`) is qualitative only; it does not represent a quantitative accuracy measurement as it lacks ground-truth annotation.
-- **Thresholding:** Confidence thresholding reduces weak/duplicate detections, but cannot completely eliminate semantic ambiguity.
+## Evaluation Artifacts
 
-**Reasoning Guardrail:** 
-To prevent hallucination, the API implements a strict guardrail. When detector evidence is empty, below the confidence threshold, or ambiguous, the API explicitly returns:
-> *"Insufficient information from the detector to answer reliably."*
+### Confusion Matrix
+![Normalized Confusion Matrix](evaluation/results/confusion_matrix_normalized.png)
 
-## 8. API
+### Precision / Recall Curves
+![PR Curve](evaluation/results/BoxPR_curve.png)
 
-### `GET /health`
-Returns the status of the API and the loaded model.
+### Validation Prediction Examples
+![Validation Batch 0 Pred](evaluation/results/val_batch0_pred.jpg)
+![Validation Batch 1 Pred](evaluation/results/val_batch1_pred.jpg)
+
+### Real-World Qualitative Check
+![Real World Sample](test/sample_images/real_world_solar_test.png)
+*Real-world qualitative input*
+
+## Failure Analysis & Limitations
+
+### 1. Bird Drop — Low Recall
+Test recall: 24.7%.
+Likely contributing factor: small-object/background confusion.
+Future mitigation: higher-resolution training/inference or tiled detection such as SAHI.
+
+### 2. Defective vs Physical Damage
+Real-world qualitative inference showed a strong Physical Damage prediction alongside overlapping Defective detections.
+Interpretation: semantic ambiguity between visually related categories.
+Future mitigation: more class-specific hard negatives/examples and taxonomy-aware post-processing.
+
+### 3. Dusty — Lower Precision
+Test precision: 34.2%.
+Interpretation: visually ambiguous regions can produce false Dusty predictions.
+Future mitigation: lighting/glare variation and hard-negative sampling.
+
+### 4. Snow — Localization Difficulty
+Test: mAP50 = 34.2%, mAP50-95 = 19.7%.
+Likely contributing factor: axis-aligned boxes converted from polygon annotations can reduce localization precision.
+Future mitigation: better box annotations or segmentation-aware labeling.
+
+### 5. Non Defective — Semantic Ambiguity
+Test precision: 37.4%.
+Interpretation: healthy regions can be visually difficult to separate from visually similar fault/background regions.
+Future mitigation: stronger hard-negative sampling and clearer class definition.
+
+## Constrained Reasoning Layer
+
+```mermaid
+graph TD
+    A[Question] --> B[Intent Routing]
+    B --> C{Detector Required?}
+    C -->|No| D[General Response]
+    C -->|Yes| E[RT-DETR Detection]
+    E --> F[Structured Detections]
+    F --> G[Constrained Reasoning]
+    G --> H[Confidence Guardrail]
+    H --> I[Answer]
+```
+
+The reasoning layer routes questions based on deterministic Python logic. It strictly evaluates structured detector outputs and does not invent visual facts. If low-confidence evidence is provided, it triggers an insufficient-information guardrail. 
+
+*Note: No LangChain, LangGraph, CrewAI, AutoGen, or other LLM/agent orchestration framework is used.*
+
+## API
+
+**Startup:**
 ```bash
-curl http://127.0.0.1:8000/health
-```
-**Response:** 
-```json
-{
-  "status": "ok",
-  "model": "RT-DETR-L"
-}
+uvicorn app.main:app --host 0.0.0.0 --port 8000
 ```
 
-### `POST /detect`
-Accepts an image and an optional confidence threshold, returning structured detections.
+**Health Check:**
 ```bash
-curl -X POST "http://127.0.0.1:8000/detect" \
-  -F "file=@test\sample_images\real_world_solar_test.png" \
-  -F "conf=0.50"
-```
-**Response:**
-```json
-{
-  "success": true,
-  "detections": [
-    {
-      "class_id": 4,
-      "class_name": "Physical Damage",
-      "confidence": 0.72,
-      "bounding_box": {
-        "x1": 142,
-        "y1": 205,
-        "x2": 450,
-        "y2": 512
-      }
-    }
-  ],
-  "counts": {
-    "Physical Damage": 1
-  },
-  "total_detections": 1
-}
+curl -X GET http://localhost:8000/health
 ```
 
-### `POST /reason`
-Accepts an image and a natural-language question. It routes the intent, extracts visual detections if necessary, applies guardrails, and answers the question.
-
-**Example A: Successful visual question**
+**Detection Endpoint:**
 ```bash
-curl -X POST "http://127.0.0.1:8000/reason" \
-  -F "question=How many dusty panels are visible?" \
-  -F "file=@test\sample_images\real_world_solar_test.png"
-```
-**Response:**
-```json
-{
-  "question": "How many dusty panels are visible?",
-  "intent": "visual_detection_required",
-  "answer": "Based on the visual analysis, I found 2 Dusty instances.",
-  "relevant_detections": [
-    {"class_name": "Dusty", "confidence": 0.81, "bounding_box": {"x1": 10, "y1": 20, "x2": 100, "y2": 100}},
-    {"class_name": "Dusty", "confidence": 0.76, "bounding_box": {"x1": 200, "y1": 150, "x2": 300, "y2": 250}}
-  ],
-  "guardrail_triggered": false
-}
+curl -X POST -F "file=@test/sample_images/real_world_solar_test.png" http://localhost:8000/detect
 ```
 
-**Example B: Insufficient information (Guardrail triggered)**
+**Visual Reasoning Endpoint:**
 ```bash
-curl -X POST "http://127.0.0.1:8000/reason" \
-  -F "question=Is there damage?" \
-  -F "file=@test\sample_images\real_world_solar_test.png" \
-  -F "conf=0.95"
-```
-*(Detector finds nothing above 0.95 confidence)*
-**Response:**
-```json
-{
-  "question": "Is there damage?",
-  "intent": "visual_detection_required",
-  "answer": "Insufficient information from the detector to answer reliably.",
-  "relevant_detections": [],
-  "guardrail_triggered": true
-}
+curl -X POST \
+  -F "file=@test/sample_images/real_world_solar_test.png" \
+  -F 'question="How many Physical Damage detections are present?"' \
+  http://localhost:8000/reason
 ```
 
-**Example C: Non-visual/general question**
+**General/Domain Question (No Image Required):**
 ```bash
-curl -X POST "http://127.0.0.1:8000/reason" \
-  -F "question=What is a solar panel?"
-```
-*(Detector inference is skipped)*
-**Response:**
-```json
-{
-  "question": "What is a solar panel?",
-  "intent": "general_question",
-  "answer": "This is a general knowledge question that does not require visual inspection. Solar panels convert sunlight into electricity...",
-  "relevant_detections": [],
-  "guardrail_triggered": false
-}
+curl -X POST \
+  -F 'question="What is a solar panel?"' \
+  http://localhost:8000/reason
 ```
 
-## 9. Running Locally
+## Testing & Reproducibility
+The API is rigorously tested using `pytest`. The test suite includes mocked logic tests and an end-to-end integration test running on the actual trained weights.
 
-**1. Set up the environment:**
 ```bash
-python -m venv .venv
-.venv\Scripts\activate
-pip install -r requirements.txt
+# Run unit tests (Mocked)
+PYTHONPATH=. pytest -v
+
+# Run real-model integration test
+PYTHONPATH=. pytest -m integration -v
 ```
 
-**2. Start the API:**
-```powershell
-$env:PYTHONPATH="."
-uvicorn app.main:app --host 127.0.0.1 --port 8000
-```
-
-**3. API Documentation:**
-Interactive Swagger documentation is automatically available at: `http://127.0.0.1:8000/docs`
-
-## 10. Testing
-The project includes a robust, headless unit test suite that does not require a GPU or load the actual model weights (the detector is mocked for speed and stability).
-
-Run the tests:
-```powershell
-$env:PYTHONPATH="."
-pytest -v
-```
-**Result:** 14 passed, 0 failed, 1 skipped.
-
-**Integration Test:**
-To test the *actual* model inference against the sample image (requires the `best.pt` model and runtime dependencies), run the separated integration test:
-```powershell
-$env:PYTHONPATH="."
-pytest -m integration -v
-```
-
-## 11. Reproducibility
-The ML workflow is highly reproducible. Please refer to:
-- `training/train.py` & `training/README.md`
-- `evaluation/evaluate.py` & `evaluation/README.md`
-- `SolarSight_Training_Evaluation.ipynb`
-- `training/results/` and `evaluation/results/` (Original recorded artifacts)
-
-These artifacts provide the exact commands and hyperparameter configurations used to train the model.
-
-## 12. Repository Structure
-```text
-SolarSight/
-├── app/                                    # FastAPI application & logic
-├── dataset/                                # Dataset documentation
-├── docs/                                   # Project memos and PDFs
-├── evaluation/                             # Evaluation scripts and metric plots
-├── model/                                  # Trained weights (best.pt)
-├── test/                                   # Sample images for testing
-├── training/                               # Training scripts and curves
-├── tests/                                  # Pytest unit & integration tests
-├── collect_artifacts.py                    # Colab artifact extraction script
-├── Dockerfile                              # Containerization configuration
-├── requirements.txt                        # API dependencies
-├── SolarSight_Training_Evaluation.ipynb    # Original ML workflow notebook
-└── README.md                               # Project documentation
-```
-
-## 13. Constraints Followed
-- **Model:** RT-DETR used for object detection.
-- **Dataset:** Custom domain dataset utilized, featuring non-COCO/domain-specific classes.
-- **API:** FastAPI API successfully implemented.
-- **Reasoning:** Constrained Python reasoning layer implemented based purely on structured detections.
-- **No Agentic Frameworks:** LangChain, LangGraph, CrewAI, AutoGen, or similar agentic frameworks were explicitly **NOT** used.
-- **No AutoML:** No-code training or AutoML was completely avoided.
-- **Reproducibility:** Standalone reproducible training and evaluation scripts are included.
-
-## 14. Submission Checklist
-- [x] Source code (FastAPI, Detector, Reasoning)
-- [x] Model weights (`model/best.pt`)
-- [x] Training code (`training/train.py`)
-- [x] Evaluation code (`evaluation/evaluate.py`)
-- [x] FastAPI endpoints (`/health`, `/detect`)
-- [x] Reasoning endpoint (`/reason` with guardrails)
-- [x] Tests (Unit tests passed; Integration test separated)
-- [x] Reproducibility documentation (READMEs included)
-- [x] Evaluation artifacts (Curves, plots, matrices)
-- [ ] 2-page memo (`docs/memo.pdf` - Pending generation/inclusion)
+## Deployment
+The repository includes a `Dockerfile` and was statically reviewed for deployment readiness; local Docker runtime execution was not performed because Docker was unavailable on the development host.
