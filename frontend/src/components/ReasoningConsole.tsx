@@ -10,9 +10,18 @@ interface Props {
 const PRESET_QUESTIONS = [
   "How many Physical Damage detections are present?",
   "Is there any Defective panel?",
-  "How many Dusty regions were detected?",
+  "Which fault has the highest confidence?",
+  "Where is the physical damage located?",
+  "What types of faults are detected?",
   "What is a solar panel?"
 ];
+
+const formatIntent = (intent: string) => {
+  return intent
+    .split('_')
+    .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+    .join(' ');
+};
 
 export const ReasoningConsole: React.FC<Props> = ({ imageFile }) => {
   const [question, setQuestion] = useState('');
@@ -141,7 +150,7 @@ export const ReasoningConsole: React.FC<Props> = ({ imageFile }) => {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div className="glass-card p-4 bg-slate-950/50">
                 <div className="text-[11px] font-semibold text-slate-500 mb-1.5 uppercase tracking-wider">Detected Intent</div>
-                <div className="text-sm font-medium text-white break-words">{result.intent}</div>
+                <div className="text-sm font-medium text-white break-words">{formatIntent(result.intent)}</div>
               </div>
               <div className="glass-card p-4 bg-slate-950/50">
                 <div className="text-[11px] font-semibold text-slate-500 mb-1.5 uppercase tracking-wider">Vision Detection</div>
@@ -164,6 +173,51 @@ export const ReasoningConsole: React.FC<Props> = ({ imageFile }) => {
                 </div>
               </div>
             </div>
+
+            {result.evidence && (
+              <div className="glass-card p-4 bg-slate-900/80 border border-slate-700/50 shadow-inner">
+                <div className="text-[11px] font-semibold text-slate-400 mb-3 uppercase tracking-wider flex items-center gap-2">
+                  <BrainCircuit className="w-3.5 h-3.5 text-ai-500" /> Structured Evidence
+                </div>
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                  <div>
+                    <div className="text-xs text-slate-500 mb-1">Relevant Class</div>
+                    <div className="text-sm font-medium text-slate-200">{result.evidence.relevant_class || "N/A"}</div>
+                  </div>
+                  <div>
+                    <div className="text-xs text-slate-500 mb-1">Detection Count</div>
+                    <div className="text-sm font-medium text-slate-200">{result.evidence.count}</div>
+                  </div>
+                  <div>
+                    <div className="text-xs text-slate-500 mb-1">Max Confidence</div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm font-medium text-slate-200">
+                        {result.evidence.max_confidence > 0 ? `${(result.evidence.max_confidence * 100).toFixed(0)}%` : "N/A"}
+                      </span>
+                      {result.evidence.confidence_tier !== "N/A" && (
+                        <span className={`text-[10px] px-1.5 py-0.5 rounded-sm font-bold tracking-wider ${
+                          result.evidence.confidence_tier === 'HIGH' ? 'bg-emerald-500/20 text-emerald-400' :
+                          result.evidence.confidence_tier === 'MEDIUM' ? 'bg-amber-500/20 text-amber-400' :
+                          'bg-rose-500/20 text-rose-400'
+                        }`}>
+                          {result.evidence.confidence_tier}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                  <div>
+                    <div className="text-xs text-slate-500 mb-1">Spatial Location</div>
+                    <div className="text-sm font-medium text-slate-200 capitalize">{result.evidence.location?.replace('-', ' ') || "N/A"}</div>
+                  </div>
+                </div>
+                {result.evidence.overlapping_detections && (
+                  <div className="mt-4 bg-amber-500/10 border border-amber-500/20 rounded-md p-2.5 flex items-start gap-2 text-amber-400/90 text-xs">
+                    <AlertTriangle className="w-4 h-4 flex-shrink-0 mt-0.5" />
+                    <p>Overlapping bounding boxes detected. Repeated counts for the same physical fault are possible.</p>
+                  </div>
+                )}
+              </div>
+            )}
 
             {result.guardrail_triggered ? (
               <div className="p-5 bg-rose-500/10 border border-rose-500/30 rounded-xl relative overflow-hidden">

@@ -69,7 +69,7 @@ async def reason(
     intent = route_intent(question)
     logger.info(f"Routed intent: {intent}")
     
-    if intent == "general_question":
+    if intent in ("GENERAL_KNOWLEDGE", "UNSUPPORTED"):
         return reason_over_detections(question, {"total_detections": 0, "detections": [], "counts": {}})
         
     if not file:
@@ -82,8 +82,17 @@ async def reason(
         
     try:
         contents = await file.read()
+
+        # Extract image dimensions for spatial location queries
+        img = Image.open(io.BytesIO(contents))
+        img_width, img_height = img.size
+
         detector = get_detector()
         detections = detector.detect(contents, conf=conf)
+
+        # Inject image dimensions into detections data for location reasoning
+        detections["image_width"] = img_width
+        detections["image_height"] = img_height
         
         reasoning_result = reason_over_detections(question, detections)
         if reasoning_result.get("guardrail_triggered"):

@@ -63,7 +63,7 @@ def test_reason_general_no_image():
     response = client.post("/reason", data={"question": "What is a solar panel?", "conf": 0.50})
     assert response.status_code == 200
     res = response.json()
-    assert res["intent"] == "general_question"
+    assert res["intent"] == "GENERAL_KNOWLEDGE"
     assert res["guardrail_triggered"] is False
 
 def test_reason_visual_no_image():
@@ -80,7 +80,7 @@ def test_reason_visual_with_image():
     )
     assert response.status_code == 200
     res = response.json()
-    assert res["intent"] == "visual_detection_required"
+    assert res["intent"] == "CLASS_QUERY"
     assert res["guardrail_triggered"] is False
     assert "Physical Damage" in res["answer"]
 

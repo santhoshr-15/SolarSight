@@ -18,6 +18,15 @@ export interface DetectionResponse {
   detections: Detection[];
 }
 
+export interface Evidence {
+  relevant_class: string | null;
+  count: number;
+  max_confidence: number;
+  confidence_tier: string;
+  location: string | null;
+  overlapping_detections: boolean;
+}
+
 export interface ReasoningResponse {
   question: string;
   intent: string;
@@ -25,6 +34,7 @@ export interface ReasoningResponse {
   detections_used: number;
   detector_invoked: boolean;
   answer: string;
+  evidence?: Evidence;
 }
 
 export interface HealthResponse {
