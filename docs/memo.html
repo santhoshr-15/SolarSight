@@ -1,0 +1,92 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+  body { font-family: Arial, sans-serif; font-size: 11.5px; line-height: 1.35; margin: 0; padding: 0; }
+  h1 { font-size: 16px; margin-bottom: 5px; margin-top: 5px; text-align: center; }
+  h2 { font-size: 13px; margin-top: 10px; margin-bottom: 5px; border-bottom: 1px solid #ccc; padding-bottom: 2px; }
+  p { margin-top: 5px; margin-bottom: 5px; }
+  ul { margin-top: 3px; margin-bottom: 3px; padding-left: 20px; }
+  li { margin-bottom: 2px; }
+  table { border-collapse: collapse; width: 100%; margin-top: 5px; margin-bottom: 5px; font-size: 11px; }
+  th, td { border: 1px solid #ddd; padding: 4px; text-align: left; }
+  th { background-color: #f2f2f2; }
+  code { font-family: Consolas, monospace; font-size: 10.5px; background-color: #f8f8f8; padding: 1px 3px; border-radius: 3px; }
+</style>
+</head>
+<body>
+<h1>SolarSight — Constrained Object Detection &amp; Reasoning API</h1>
+<p><strong>Pre-Hackathon Screening — RAP AI/ML</strong></p>
+<h2>1. Domain &amp; Dataset</h2>
+<p>SolarSight performs solar panel fault detection using RT-DETR-L. It detects six domain-specific classes: <em>Bird Drop, Defective, Dusty, Non Defective, Physical Damage, Snow</em>.</p>
+<p><strong>Dataset Source:</strong> <a href="https://universe.roboflow.com/6rianstorm/solar-panel-fault-dataset-new">Solar Panel Fault Dataset New (v2)</a>. </p>
+<p><strong>Preprocessing:</strong> Source annotations contained a mixture of detection and polygon annotations. Polygon annotations were converted to axis-aligned bounding boxes for the detection pipeline. We did not originally create the dataset.</p>
+<p><strong>Final Image Split (8,730 total):</strong> Train: 7,669 | Validation: 611 | Test: 450. The dataset retains all six classes and includes domain-specific solar fault categories beyond standard COCO object categories.</p>
+<h2>2. Model Training</h2>
+<ul>
+<li><strong>Model:</strong> RT-DETR-L (Starting point: pretrained <code>rtdetr-l.pt</code>)</li>
+<li><strong>Epochs:</strong> 20 | <strong>Batch Size:</strong> 8 | <strong>Image Size:</strong> 640 | <strong>Seed:</strong> 42</li>
+<li><strong>Optimizer:</strong> AdamW (Original run used <code>optimizer=auto</code>, which resolved to AdamW)</li>
+<li><strong>Hardware:</strong> Tesla T4 GPU | <strong>Training Time:</strong> ~3.066 hours</li>
+<li><strong>Environment:</strong> Ultralytics 8.4.150</li>
+<li><strong>Final Checkpoint:</strong> <code>model/best.pt</code></li>
+</ul>
+<h2>3. Evaluation</h2>
+<p>Test performance is lower than validation performance. This indicates a real generalization limitation on the held-out set, which is presented honestly here.</p>
+<table>
+<thead>
+<tr>
+<th>Split</th>
+<th>Precision</th>
+<th>Recall</th>
+<th>mAP50</th>
+<th>mAP50-95</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Validation</strong></td>
+<td>0.529</td>
+<td>0.560</td>
+<td>0.511</td>
+<td>0.348</td>
+</tr>
+<tr>
+<td><strong>Held-Out Test</strong></td>
+<td>0.442</td>
+<td>0.514</td>
+<td>0.424</td>
+<td>0.271</td>
+</tr>
+</tbody>
+</table>
+<h2>4. Failure Analysis</h2>
+<ol>
+<li><strong>Bird Drop:</strong> Test recall is 24.7%. Small-object/background confusion is a likely contributing factor. <em>Future mitigation:</em> Higher-resolution inference/training or tiled detection (SAHI).</li>
+<li><strong>Defective vs Physical Damage:</strong> Real-world qualitative testing produced a strong Physical Damage detection together with overlapping Defective detections. This demonstrates semantic ambiguity between visually related fault categories. <em>Future mitigation:</em> Better class-specific examples/hard negatives and taxonomy-aware post-processing.</li>
+<li><strong>Dusty:</strong> Test precision is 34.2%. Visually ambiguous regions can produce lower-confidence Dusty predictions. <em>Future mitigation:</em> More lighting/glare variation and hard-negative examples.</li>
+<li><strong>Snow:</strong> Test mAP50 is 34.2%; mAP50-95 is 19.7%. Axis-aligned boxes derived from polygon annotations can limit localization quality. <em>Future mitigation:</em> Improved box annotations or segmentation-aware labeling.</li>
+<li><strong>Non Defective:</strong> Test precision is 37.4%. Healthy-panel regions are semantically difficult to distinguish from visually similar fault/background regions. <em>Future mitigation:</em> Stronger hard-negative sampling and clearer class definition.</li>
+</ol>
+<h2>5. Constrained Reasoning API</h2>
+<p>The reasoning layer is implemented with ordinary Python logic and explicitly does not use LangChain, LangGraph, CrewAI, AutoGen, or similar agent orchestration frameworks. It operates on structured detector outputs rather than inventing visual facts.</p>
+<p><strong>Architecture:</strong>
+<code>Natural-language question → Intent routing → Detector only when visual evidence is required → Structured detections → Deterministic constrained reasoning → Confidence guardrail</code></p>
+<p><strong>Guardrail Behavior:</strong> If detector evidence is insufficient, the system explicitly returns:
+<em>"Insufficient information from the detector to answer reliably."</em></p>
+<h2>6. API / Engineering Reproducibility</h2>
+<p>The API was verified through a real running Uvicorn server using raw HTTP requests, not merely mocked unit tests.
+- <strong><code>GET /health</code>:</strong> HTTP 200
+- <strong><code>POST /detect</code>:</strong> HTTP 200 (real RT-DETR inference → structured detections returned)
+- <strong><code>POST /reason</code> (visual question):</strong> HTTP 200 (detector invoked → reasoning generated from detections)
+- <strong><code>POST /reason</code> (general question):</strong> HTTP 200 (detector bypassed)
+- <strong><code>POST /reason</code> (insufficient evidence):</strong> HTTP 200 (guardrail triggered → system explicitly refused to guess)
+- <strong>Invalid requests:</strong> HTTP 400 / HTTP 422 as appropriate</p>
+<p><strong>Test Suite:</strong> Unit tests: 14 passed, 1 skipped. Real-model integration test: 1 passed (4.92 seconds using CPU fallback on the latest execution).</p>
+<h2>7. Reproducibility &amp; Deployment</h2>
+<p>The repository includes <code>training/train.py</code>, <code>evaluation/evaluate.py</code>, <code>requirements.txt</code>, <code>README.md</code>, automated tests, and the <code>model/best.pt</code> checkpoint. The repository includes a <code>Dockerfile</code> and was statically reviewed for deployment readiness; local Docker runtime execution was not performed because Docker was unavailable on the development host.</p>
+<h2>8. Limitations &amp; Conclusion</h2>
+<p>SolarSight demonstrates a reproducible ML pipeline with measurable held-out evaluation, explicit failure analysis, and constrained reasoning secured by a confidence guardrail. It is structured as a production-oriented API and avoids inventing visual hallucination by strictly reasoning from verified bounding boxes.</p>
+</body>
+</html>

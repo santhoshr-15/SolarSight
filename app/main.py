@@ -16,7 +16,20 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
+import os
+from fastapi.middleware.cors import CORSMiddleware
+
 app = FastAPI(title="SolarSight API", description="Constrained object detection and reasoning API")
+
+frontend_origin = os.environ.get("FRONTEND_ORIGIN", "http://localhost:5173")
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[frontend_origin, "http://localhost:3000"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 @app.get("/health")
 def health_check():
