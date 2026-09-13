@@ -41,15 +41,6 @@ export const Header: React.FC<Props> = ({ apiStatus }) => {
           <Code2 className="w-4 h-4" />
           <span>GitHub</span>
         </a>
-        <a 
-          href={`${API_BASE_URL}/docs`} 
-          target="_blank" 
-          rel="noreferrer" 
-          className="flex items-center space-x-2 text-sm font-bold bg-ai-500/10 text-ai-400 hover:bg-ai-500/20 border border-ai-500/30 hover:border-ai-500/50 px-4 py-2 rounded-lg transition-all shadow-[0_0_10px_rgba(14,165,233,0.1)] hover:shadow-[0_0_15px_rgba(14,165,233,0.2)]"
-        >
-          <BookOpen className="w-4 h-4" />
-          <span>API Docs</span>
-        </a>
       </div>
     </header>
   );

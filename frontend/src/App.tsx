@@ -72,9 +72,11 @@ function App() {
         <img 
           src="/assets/hero-bg.jpg" 
           alt="Solar Background" 
-          className="absolute inset-0 w-full h-full object-cover opacity-20 object-center"
+          className="absolute inset-0 w-full h-full object-cover opacity-40 object-center"
         />
         <div className="absolute inset-0 bg-hero-overlay"></div>
+        {/* Animated subtle light sweep */}
+        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-ai-400/5 to-transparent w-[200%] animate-[scan_8s_ease-in-out_infinite] -skew-x-12 opacity-50"></div>
       </div>
       
       <div className="z-10 flex flex-col flex-1">
@@ -82,8 +84,7 @@ function App() {
         
         <main className="flex-1 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto w-full flex flex-col gap-16 mt-16 mb-24">
           
-          {/* Cinematic Hero Section */}
-          <section className="flex flex-col items-center text-center max-w-4xl mx-auto space-y-8 animate-fade-in-up stagger-1">
+          <section className="flex flex-col items-center text-center max-w-5xl mx-auto space-y-8 animate-fade-in-up stagger-1 py-12">
             <div className="flex flex-wrap items-center justify-center gap-3">
               <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full glass-card text-xs font-medium text-ai-400 border border-ai-500/30 shadow-[0_0_15px_rgba(14,165,233,0.2)]">
                 <span className={`w-2 h-2 rounded-full ${apiStatus === 'online' ? 'bg-emerald-400 animate-pulse' : 'bg-rose-500'}`}></span>
@@ -93,9 +94,15 @@ function App() {
                 <Activity className="w-3.5 h-3.5" />
                 RT-DETR-L ENGINE
               </div>
+              <div className="hidden sm:inline-flex items-center gap-2 px-3 py-1 rounded-full glass-card text-xs font-medium text-slate-300 border border-slate-700/50">
+                6 FAULT CLASSES
+              </div>
+              <div className="hidden sm:inline-flex items-center gap-2 px-3 py-1 rounded-full glass-card text-xs font-medium text-slate-300 border border-slate-700/50">
+                REAL-TIME ANALYSIS
+              </div>
             </div>
             
-            <h1 className="text-4xl sm:text-6xl lg:text-7xl font-extrabold text-transparent bg-clip-text bg-gradient-to-br from-white via-slate-200 to-slate-500 tracking-tight leading-tight">
+            <h1 className="text-5xl sm:text-7xl lg:text-8xl font-extrabold text-transparent bg-clip-text bg-gradient-to-br from-white via-slate-100 to-slate-400 tracking-tight leading-[1.1] pb-2">
               See Every Fault.<br/>
               <span className="text-transparent bg-clip-text bg-gradient-to-r from-solar-400 to-solar-600">Understand Every Panel.</span>
             </h1>
@@ -104,30 +111,21 @@ function App() {
               AI-powered solar panel inspection using RT-DETR object detection and constrained visual reasoning. Built for precision.
             </p>
             
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-4 w-full sm:w-auto">
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-5 pt-8 w-full sm:w-auto">
               <button 
                 onClick={scrollToUpload}
-                className="w-full sm:w-auto px-8 py-3.5 rounded-xl bg-solar-500 hover:bg-solar-400 text-slate-950 font-bold tracking-wide transition-all duration-300 flex items-center justify-center gap-2 shadow-[0_0_20px_rgba(234,179,8,0.3)] hover:shadow-[0_0_30px_rgba(234,179,8,0.5)] transform hover:-translate-y-1"
+                className="w-full sm:w-auto px-10 py-4 rounded-xl bg-solar-500 hover:bg-solar-400 text-slate-950 text-lg font-bold tracking-wide transition-all duration-300 flex items-center justify-center gap-3 shadow-[0_0_20px_rgba(234,179,8,0.4)] hover:shadow-[0_0_35px_rgba(234,179,8,0.6)] transform hover:-translate-y-1 group relative overflow-hidden"
               >
+                <div className="absolute inset-0 bg-white/20 -translate-x-full group-hover:translate-x-full transition-transform duration-700 skew-x-12"></div>
                 Inspect a Panel
-                <ArrowRight className="w-5 h-5" />
+                <ArrowRight className="w-6 h-6 group-hover:translate-x-1 transition-transform" />
               </button>
               
-              <a 
-                href="https://solarsight-api-243267443769.asia-south1.run.app/docs" 
-                target="_blank" 
-                rel="noreferrer"
-                className="w-full sm:w-auto px-6 py-3.5 rounded-xl glass-panel glass-panel-hover text-white font-medium flex items-center justify-center gap-2"
-              >
-                <Code2 className="w-5 h-5 text-ai-400" />
-                Open API Docs
-              </a>
-
               <a 
                 href="https://github.com/santhoshr-15/SolarSight" 
                 target="_blank" 
                 rel="noreferrer"
-                className="w-full sm:w-auto px-6 py-3.5 rounded-xl glass-panel glass-panel-hover text-white font-medium flex items-center justify-center gap-2"
+                className="w-full sm:w-auto px-8 py-4 rounded-xl glass-panel glass-panel-hover text-white font-medium flex items-center justify-center gap-2 border border-slate-600/50 hover:bg-slate-800/80 transition-all duration-300"
               >
                 <Code className="w-5 h-5" />
                 View on GitHub

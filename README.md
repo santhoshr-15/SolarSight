@@ -1,182 +1,288 @@
-<div align="center">
-  <img src="https://raw.githubusercontent.com/lucide-icons/lucide/main/icons/activity.svg" width="60" alt="SolarSight Logo">
+# ☀️ SolarSight
 
-  # SolarSight AI
-  
-  **See Every Fault. Understand Every Panel.**
+AI-Powered Solar Panel Fault Detection & Constrained Visual Reasoning
 
-  [![Live Demo](https://img.shields.io/badge/Live%20Demo-solar--sight--mu.vercel.app-10b981?style=for-the-badge&logo=vercel)](https://solar-sight-mu.vercel.app)
-  [![API Docs](https://img.shields.io/badge/Swagger-API%20Docs-0ea5e9?style=for-the-badge&logo=fastapi)](https://solarsight-api-243267443769.asia-south1.run.app/docs)
-  [![Python](https://img.shields.io/badge/Python-3.12-blue?style=for-the-badge&logo=python)](https://www.python.org/)
-  [![PyTorch](https://img.shields.io/badge/PyTorch-RT--DETR--L-orange?style=for-the-badge&logo=pytorch)](https://pytorch.org/)
+[![Python](https://img.shields.io/badge/Python-3.13.15-blue?style=for-the-badge&logo=python)](https://www.python.org/)
+[![FastAPI](https://img.shields.io/badge/FastAPI-005571?style=for-the-badge&logo=fastapi)](https://fastapi.tiangolo.com/)
+[![React](https://img.shields.io/badge/React-20232A?style=for-the-badge&logo=react&logoColor=61DAFB)](https://reactjs.org/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-007ACC?style=for-the-badge&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
+[![Vite](https://img.shields.io/badge/Vite-B73BFE?style=for-the-badge&logo=vite&logoColor=FFD62E)](https://vitejs.dev/)
+[![PyTorch](https://img.shields.io/badge/PyTorch-2.11.0%2Bcu128-EE4C2C?style=for-the-badge&logo=pytorch&logoColor=white)](https://pytorch.org/)
+[![Ultralytics](https://img.shields.io/badge/Ultralytics-8.4.150-blue?style=for-the-badge)](https://ultralytics.com/)
+[![Google Cloud Run](https://img.shields.io/badge/Google_Cloud_Run-4285F4?style=for-the-badge&logo=google-cloud&logoColor=white)](https://cloud.google.com/run)
+[![Vercel](https://img.shields.io/badge/Vercel-000000?style=for-the-badge&logo=vercel&logoColor=white)](https://vercel.com/)
+[![pytest](https://img.shields.io/badge/pytest-0A9EDC?style=for-the-badge&logo=pytest&logoColor=white)](https://docs.pytest.org/)
 
-  SolarSight is an advanced computer-vision system built to autonomously detect solar-panel faults and provide deterministic, constrained natural-language reasoning over visual evidence.
-</div>
+------------------------------------------------------------
 
----
+## 🚀 Live Demo
 
-## ⚡ Live Production Environments
+**Frontend (Vercel):**  
+[https://solar-sight-mu.vercel.app](https://solar-sight-mu.vercel.app)
 
-SolarSight is fully deployed and operational.
+**Backend (Cloud Run):**  
+[https://solarsight-api-243267443769.asia-south1.run.app](https://solarsight-api-243267443769.asia-south1.run.app)
 
-- **Frontend Application (Vercel):** [https://solar-sight-mu.vercel.app](https://solar-sight-mu.vercel.app)
-- **FastAPI ML Backend (Google Cloud Run):** [https://solarsight-api-243267443769.asia-south1.run.app](https://solarsight-api-243267443769.asia-south1.run.app)
-- **Interactive API Documentation:** [Swagger UI](https://solarsight-api-243267443769.asia-south1.run.app/docs)
+**GitHub:**  
+[https://github.com/santhoshr-15/SolarSight](https://github.com/santhoshr-15/SolarSight)
 
----
+## 📚 API Documentation
+
+**Interactive Swagger UI:**  
+[https://solarsight-api-243267443769.asia-south1.run.app/docs](https://solarsight-api-243267443769.asia-south1.run.app/docs)
+
+**Health Check Endpoint:**  
+[https://solarsight-api-243267443769.asia-south1.run.app/health](https://solarsight-api-243267443769.asia-south1.run.app/health)
+
+## 🎯 Problem
+
+Solar panel inspection can involve large numbers of panels and visually identifying faults can be difficult and time-consuming. 
+
+SolarSight uses computer vision to identify:
+- Bird Drop
+- Defective
+- Dusty
+- Non Defective
+- Physical Damage
+- Snow
+
+Then provides evidence-based natural-language reasoning over the detector output.
+
+## 💡 Solution
+
+SolarSight provides an end-to-end web application that processes uploaded solar panel images, performs high-speed object detection using RT-DETR-L, and utilizes a deterministic reasoning layer to interpret the visual results. It does not guess when visual evidence is insufficient.
+
+## ✨ Key Features
+
+- **Real-Time Detection:** Rapid processing of solar panel imagery.
+- **6 Fault Classes:** Specialized detection for common solar panel anomalies.
+- **Constrained Visual Reasoning:** Deterministic analysis of detected features to answer specific visual questions.
+- **Confidence Guardrail:** The system rejects questions that lack sufficient visual evidence, ensuring reliable insights without hallucination.
+- **Modern Architecture:** A React/Vite frontend communicating with a scalable FastAPI backend deployed on Google Cloud Run.
 
 ## 🧠 System Architecture
 
-SolarSight separates concerns into a blazing-fast React frontend, a scalable FastAPI backend, an RT-DETR-L vision model, and a deterministic Python reasoning layer.
-
-### End-to-End Workflow
 ```mermaid
-graph TD
-    A[React Vercel Frontend] -->|Multipart Upload| B[FastAPI Cloud Run]
-    B --> C[Question & Intent Router]
-    C -->|Domain Knowledge| E[Direct Answer]
-    C -->|Visual Query| F[RT-DETR-L Object Detection]
-    F --> G[Structured JSON Bounding Boxes]
-    G --> H[Deterministic Reasoning Logic]
-    H --> I[Confidence Guardrail Validation]
-    I --> J[JSON Payload Response]
+flowchart TD
+    A[User] --> B[SolarSight React Frontend]
+    B --> C[FastAPI API]
+    C --> D{Intent Router}
+    D -->|Visual question| E[RT-DETR-L]
+    D -->|General question| F[Direct Response]
+    E --> G[Structured Detections]
+    G --> H[Constrained Reasoning]
+    H --> I[Evidence-Based Answer]
+    
+    B --> V[Vercel]
+    C --> R[Google Cloud Run]
 ```
 
-### The Reasoning Pipeline
-Unlike hallucination-prone LLM chains, SolarSight uses a strict deterministic routing and evaluation engine. It interprets structured bounding box coordinates, applies spatial and confidence thresholds, and triggers "Insufficient Evidence" safety guardrails if the user asks questions beyond the detector's capability. 
+## 🔬 Computer Vision Pipeline
 
-*Note: No LangChain, LangGraph, CrewAI, AutoGen, or other LLM/agent orchestration framework is used.*
+1. Image
+2. Preprocessing
+3. RT-DETR-L
+4. Bounding Boxes
+5. Class Labels
+6. Confidence Scores
+7. Structured Detection Output
+8. Reasoning Layer
 
----
+## 🗂 Dataset
 
-## 🔬 Model & Dataset
+- **Source:** Roboflow Universe
+- **Dataset:** Solar Panel Fault Dataset New
+- **Creator/source:** 6rianstorm
+- **Version:** v2
+- **Total images:** 8,730
+  - Train: 7,669
+  - Validation: 611
+  - Test: 450
+- **Object Counts:**
+  - Train: 41,014 objects
+  - Validation: 3,453 objects
+  - Test: 2,796 objects
 
-Solar panel fault detection presents a difficult, highly ambiguous visual inspection challenge characterized by overlapping defect signatures (e.g., *Defective* vs *Physical Damage*).
+## 🛠 Dataset Preprocessing
 
-### Dataset & Preprocessing
-- **Source:** [Solar Panel Fault Dataset New (v2) on Roboflow](https://universe.roboflow.com/6rianstorm/solar-panel-fault-dataset-new)
-- **Volume:** 8,730 images (Train: 7,669 | Val: 611 | Test: 450)
-- **Preprocessing:** Original polygon annotations were programmatically converted to axis-aligned bounding boxes to train the object detection model.
-- **Classes (6):** Bird Drop, Defective, Dusty, Non Defective, Physical Damage, Snow.
+The original dataset contained mixed detection and segmentation annotations. Local preprocessing converted polygon annotations into axis-aligned bounding boxes to create a consistent detection-ready dataset. 
 
-### RT-DETR-L Training Configuration
-| Hyperparameter | Value | Hyperparameter | Value |
-|---|---|---|---|
-| **Architecture** | RT-DETR-L (Ultralytics) | **Input Size** | 640x640 |
-| **Epochs** | 20 | **Batch Size** | 8 |
-| **Optimizer** | AdamW (lr 0.001) | **GPU** | Tesla T4 (~3h train time) |
-| **Initialization** | Pretrained `rtdetr-l.pt` | **Seed** | 42 |
+*Note: The original dataset and annotations were sourced from Roboflow Universe and were not created by us.*
 
----
+## 🤖 Model & Training
+
+- **Model:** RT-DETR-L
+- **Pretrained checkpoint:** `rtdetr-l.pt`
+- **Transferred weights:** 926 / 941
+- **Framework:** Ultralytics, PyTorch
+- **GPU:** Tesla T4
+- **Training time:** ~3.066 hours
+
+**Exact Configuration:**
+- Epochs: 20
+- Batch size: 8
+- Image size: 640
+- Optimizer: AdamW
+- Learning rate: 0.001
+- Momentum: 0.9
+- Seed: 42
+- AMP: Enabled
+- Workers: 2
 
 ## 📊 Evaluation Results
 
-Performance was evaluated strictly on the **Held-Out Test Set** (450 unseen images) to measure true generalization.
+**VALIDATION Metrics:**
+- Precision: 52.9%
+- Recall: 56.0%
+- mAP@50: 51.1%
+- mAP@50-95: 34.8%
 
-| Metric | Validation (611 imgs) | Held-out Test (450 imgs) |
-|---|---:|---:|
-| **Precision** | 52.9% | 44.23% |
-| **Recall** | 56.0% | 51.44% |
-| **mAP@50** | 51.1% | 42.37% |
-| **mAP@50-95** | 34.8% | 27.07% |
+**TEST Metrics:**
+- Precision: 44.23%
+- Recall: 51.44%
+- mAP@50: 42.37%
+- mAP@50-95: 27.07%
 
-<details>
-<summary><strong>View Per-Class Breakdown</strong></summary>
+## 📈 Class-wise Performance
 
-| Class | Precision | Recall | mAP50 | mAP50-95 |
+Exact values from the test set:
+
+| Class | Precision | Recall | mAP@50 | mAP@50-95 |
 |---|---:|---:|---:|---:|
-| **Bird Drop** | 0.502 | 0.247 | 0.282 | 0.093 |
-| **Defective** | 0.432 | 0.697 | 0.559 | 0.485 |
-| **Dusty** | 0.342 | 0.587 | 0.478 | 0.341 |
-| **Non Defective** | 0.374 | 0.592 | 0.423 | 0.302 |
-| **Physical Damage** | 0.623 | 0.472 | 0.458 | 0.207 |
-| **Snow** | 0.381 | 0.491 | 0.342 | 0.197 |
+| Bird Drop | 50.2% | 24.7% | 28.2% | 9.26% |
+| Defective | 43.2% | 69.7% | 55.9% | 48.5% |
+| Dusty | 34.2% | 58.7% | 47.8% | 34.1% |
+| Non Defective | 37.4% | 59.2% | 42.3% | 30.2% |
+| Physical Damage | 62.3% | 47.2% | 45.8% | 20.7% |
+| Snow | 38.1% | 49.1% | 34.2% | 19.7% |
 
-</details>
+## ⚠️ Failure Cases & Limitations
 
----
+Engineering-level failure analysis reveals specific limitations:
 
-## ⚠️ Failure Analysis & Limitations
+1. **Bird Drop recall weakness:** Bird Drop test recall is 24.7%, showing that many such instances can be missed.
+2. **Overlapping / ambiguous detections:** Visually similar fault patterns can result in multiple overlapping predictions.
+3. **Localization limitations:** The gap between mAP@50 and mAP@50-95 highlights precision challenges when fitting bounding boxes tightly to irregular anomalies.
+4. **Confidence threshold sensitivity:** Changing the confidence threshold can heavily influence the trade-off, removing weaker detections but potentially dropping true positives.
+5. **Real-world visual ambiguity:** Lighting, image quality, viewpoint and visually similar surface patterns can make classification difficult.
 
-To ensure absolute transparency, we actively document known failure modes and generalization gaps:
+### Difficulties Encountered
+1. **Mixed YOLO detection + segmentation annotations:** The source dataset contained both formats, requiring preprocessing.
+2. **Dataset normalization:** Polygon annotations had to be converted into detection-ready bounding boxes.
+3. **Model training time:** The RT-DETR-L training run required approximately 3.066 hours on a Tesla T4.
+4. **Cloud deployment memory:** The first Cloud Run configuration using 1 GiB memory was insufficient during model inference and exceeded the memory limit. The deployment was re-configured with 2 GiB memory, after which inference worked correctly.
+5. **Production frontend/backend integration:** Production CORS and deployment configuration had to be carefully verified between Vercel and Cloud Run.
 
-1. **Bird Drop — Low Recall (24.7%)**  
-   *Factor:* Extreme small-object/background confusion.  
-   *Mitigation:* Tiled inference (SAHI) or higher-resolution training.
-2. **Defective vs Physical Damage Ambiguity**  
-   *Factor:* Semantic overlap between categories.  
-   *Mitigation:* Taxonomy-aware post-processing and ontology refinement.
-3. **Dusty — Lower Precision (34.2%)**  
-   *Factor:* Glare and lighting variations masquerading as dust.  
-   *Mitigation:* Aggressive hard-negative sampling.
-4. **Snow — Localization Difficulty (mAP@50-95: 19.7%)**  
-   *Factor:* Converting amorphous polygon masks into strict bounding boxes destroys edge precision.  
-   *Mitigation:* Migrate from Object Detection to Instance Segmentation for amorphous classes.
-5. **Non Defective — Semantic Ambiguity**  
-   *Factor:* "Healthy" regions visually overlap with background structures.
+## 🧩 Constrained Reasoning
 
----
+The reasoning implementation follows a strict structure:
+1. Natural-language question
+2. Intent routing
+3. Determine whether detection is required
+4. Run detector if needed
+5. Read structured detections
+6. Apply constrained reasoning
+7. Confidence guardrail
+8. Natural-language answer
 
-## 📂 Project Structure
+This reasoning layer is lightweight Python logic. It does not use LLMs, agents, or frameworks like LangChain/CrewAI. If evidence is insufficient, it uses the guardrail response.
+
+## 🔌 API Reference
+
+### GET /health
+Returns the current API health status.
+
+### POST /detect
+Accepts an image file upload (multipart/form-data) and returns structured detections (bounding boxes, classes, and confidences).
+
+### POST /reason
+Accepts a JSON body with `question` (string) and `image_url` (or uploaded file depending on implementation), routing it through the deterministic reasoning layer.
+
+Refer to the live Swagger documentation for full schemas:  
+[https://solarsight-api-243267443769.asia-south1.run.app/docs](https://solarsight-api-243267443769.asia-south1.run.app/docs)
+
+## 🧪 Testing & Validation
+
+The test suite covers API, reasoning, and integration behavior.
+- **15 passed**
+- **0 failed**
+- **1 skipped**
+
+## ☁️ Deployment Architecture
+
+- **Frontend:** Vercel
+- **Backend:** Google Cloud Run
+- **Region:** asia-south1
+- **Service:** solarsight-api
+- **Runtime:** FastAPI container
+- **Model:** RT-DETR-L
+- **Memory:** 2 GiB
+- **CPU:** 1
+- **Concurrency:** 1
+- **Min instances:** 0
+- **Max instances:** 1
+- **Startup CPU boost:** Enabled
+- **Billing:** Request-based billing
+
+## 🔁 Reproducibility
+
+- **Python:** 3.13.15
+- **PyTorch:** 2.11.0+cu128
+- **Ultralytics:** 8.4.150
+- **GPU:** Tesla T4
+- **Training Params:** 20 epochs, batch 8, 640 image size, AdamW, learning rate 0.001, seed 42, AMP enabled.
+
+*Please refer to `training/` and `SolarSight_Training_Evaluation.ipynb` for reproduction.*
+
+## 📁 Project Structure
 
 ```text
 SolarSight/
-├── app/                  # FastAPI backend
-│   ├── main.py           # Core API definitions
-│   ├── detector.py       # RT-DETR model loading and inference
-│   └── reasoning.py      # Deterministic intent routing & reasoning
-├── frontend/             # React/Vite/Tailwind frontend
-│   ├── src/
-│   │   ├── components/   # UI components (Header, Viewer, Metrics, etc.)
-│   │   └── App.tsx       # Main application layout
-│   └── public/assets/    # Images & static assets
-├── tests/                # Pytest suites
-│   ├── test_main.py      # API endpoint unit tests
-│   └── test_reasoning.py # Reasoning logic unit tests
-├── model/                # ML Checkpoints
-│   └── best.pt           # Trained RT-DETR-L weights
-├── requirements.txt      # Python dependencies
-└── Dockerfile            # Production container configuration
+├── app/                  # FastAPI backend API and model inference
+├── dataset/              # Dataset preprocessing and scripts
+├── docs/                 # Documentation and project memos
+├── evaluation/           # Evaluation scripts and performance metrics
+├── frontend/             # React / Vite frontend application
+├── model/                # Checkpoint files (best.pt)
+├── test/                 # Additional tests and validation
+├── tests/                # Pytest suites for API and logic
+├── training/             # Scripts for training RT-DETR-L
+├── Dockerfile            # Container configuration for Cloud Run
+├── README.md             # Project documentation
+├── requirements.txt      # Backend Python dependencies
+├── pytest.ini            # Pytest configuration
+└── SolarSight_Training_Evaluation.ipynb # Training & evaluation notebook
 ```
 
----
+## 🐳 Docker
 
-## 💻 Developer Setup & Reproducibility
+You can build and run the backend locally using Docker:
 
-### Backend Setup (FastAPI + PyTorch)
 ```bash
-# 1. Clone & create environment
-git clone https://github.com/santhoshr-15/SolarSight.git
-cd SolarSight
-python -m venv venv
-source venv/bin/activate  # or `venv\Scripts\activate` on Windows
+docker build -t solarsight-backend .
+docker run -p 8080:8080 solarsight-backend
+```
 
-# 2. Install Dependencies
+## 💻 Local Development
+
+**Backend:**
+```bash
 pip install -r requirements.txt
-
-# 3. Start Development Server
 uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
 ```
 
-### Frontend Setup (React + Vite + Tailwind)
+**Frontend:**
 ```bash
 cd frontend
 npm install
 npm run dev
 ```
 
-### Running the Test Suite
-The API is rigorously tested. The test suite includes mocked logic tests and end-to-end integration tests running inference on the trained weights.
+## 🔮 Future Improvements
+- Move from object detection to instance segmentation to better handle amorphous categories like Snow.
+- Address precision drops with class-specific post-processing thresholds.
+- Expand the dataset to reduce visual ambiguity.
 
-```bash
-# Run isolated unit tests
-PYTHONPATH=. pytest -v
+## 👨‍💻 Project
 
-# Run heavy real-model integration tests
-PYTHONPATH=. pytest -m integration -v
-```
-
----
-<div align="center">
-  <i>Engineered for precision. Built for scale.</i>
-</div>
+Built with precision for robust solar-panel visual inspection.
